@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Decapromolist</title>
+    <link rel="stylesheet" type="text/css" href="pub/style.css" />
+    
+    <link href="pub/jsgrid.min.css" rel="stylesheet" />
+    <link href="pub/jsgrid-theme.min.css" rel="stylesheet" />
+
+    <script src="pub/jquery-1.8.3.min.js"></script>
+    <script src="pub/db.js"></script>
+    
+    <script src="pub/jsgrid.min.js"></script>
+    <script src="pub/gh3.min.js"></script>
+    <script src="pub/underscore-min.js"></script>
+</head>
+<body>
+    <div id="jsGrid"></div>
+
+    <script>
+        $(function() {
+            var user = new Gh3.User("thof");
+            var repo = new Gh3.Repository("decapromolist", user);
+            repo.fetch(function (err, res){
+                if(err) { throw "outch ..." }
+                
+                repo.fetchBranches(function (err, res){
+                    if(err) { throw "outch ..." }
+
+                    var master = repo.getBranchByName("master");
+
+                    master.fetchContents(function (err, res){
+                        if(err) { throw "outch ..." }
+
+                        var dir = master.getDirByName("decapromolist");
+                        dir.fetchContents(function (err, res){
+                            if(err) { throw "outch ..." }
+
+                            console.log(dir.getContents());
+                            array = dir.getContents();
+                            array = array.filter(checkName);
+                            array.sort(function(a, b){
+                                if(a.name.localeCompare("decapromolist.json") == 0){
+                                    return -1;
+                                }
+                                date1 = a.name.substring(18,22)+a.name.substring(16,18)+a.name.substring(14,16);
+                                date2 = b.name.substring(18,22)+b.name.substring(16,18)+b.name.substring(14,16);
+                                return parseFloat(date2) - parseFloat(date1);
+                            });
+                            fileName = getParameterByName("list");
+                            if(fileName == null || fileName.localeCompare("decapromolist.json") == 0){
+                                fileName = "decapromolist.json";
+                                document.getElementById("listDate").innerHTML = "Aktualna lista";
+                            } else {
+                                var listDate = "Lista z dn. "+fileName.substring(14,16)+"."+fileName.substring(16,18)+"."+fileName.substring(18,22);
+                                document.getElementById("listDate").innerHTML = listDate;
+                            }
+                            array.forEach(function(el) {
+                                console.log(el.name);
+                            });
+                            
+                            for (var i = 0; i < array.length; i++){
+                                if(array[i].name.localeCompare(fileName) == 0){
+                                    if(i+1<array.length){
+                                        document.getElementById("previous").href = "?list="+array[i+1].name;
+                                    }
+                                    if(i-1>=0){
+                                        document.getElementById("next").href = "?list="+array[i-1].name;
+                                    }
+                                    break;
+                                }
+                            }
+                        });
+
+                    });
+
+                })
+            });
+
+        });
+        
+    
+        $(function() {
+
+            $("#jsGrid").jsGrid({
+                height: "100%",
+                width: "100%",
+                filtering: true,
+                editing: false,
+                inserting: false,
+                sorting: true,
+                paging: false,
+                autoload: true,
+                pageSize: 15,
+                pageButtonCount: 5,
+                deleteConfirm: "Do you really want to delete the client?",
+                controller: db,
+                fields: [
+                    { name: "sx", title: "Płeć", type: "text" , width: 10},
+                    { name: "sc", title: "Kategoria", type: "text" , width: 80},
+                    { name: "nm", title: "Nazwa", type: "text", width: 150 },
+                    { name: "sz", title: "Rozmiary", type: "text", width: 100 },
+                    { name: "op", title: "Cena reg", type: "text", sorter: "number", width: 20 },
+                    { name: "pr", title: "Cena", type: "text", sorter: "number", width: 20 },
+                    { name: "dc", title: "Zniżka", type: "text", sorter: "number", width: 10 },
+                    { name: "or", title: "Operacja", type: "text", width: 70 }
+                ]
+            });
+            insertFilterValues();
+            getFiltersFromUrl();
+        });
+    </script>
+</body>
+</html>
