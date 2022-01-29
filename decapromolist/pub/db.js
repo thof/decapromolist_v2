@@ -8,7 +8,7 @@
         loadData: function(filter) {
             setFilterValues(filter);
             prepareCategoryFilter(filter.sc);
-            prepareStringFilter(filter.sx, filter.nm, filter.sz, filter.or); 
+            prepareStringFilter(filter.sx, filter.nm, filter.sz, filter.or, filter.de);
             var items = [];
             $.ajax({
               dataType: "json",
@@ -25,6 +25,7 @@
                         && (!filter.nm || checkString(product.nm, reNm))
                         && (!filter.sz || checkString(product.sz, reSz))
                         && (!filter.or || checkString(product.or, reOr))
+                        && (!filter.de || checkString(product.de, reDe))
                         && (!filter.pr || checkNumber(product.pr, filter.pr))
                         && (!filter.op || checkNumber(product.pp, filter.op))
                         && (!filter.dc || checkNumber(product.dc, filter.dc));
@@ -47,13 +48,14 @@
 
 }());
 
-var reNeg, rePos, reSx, reNm, reSz, reOr;
+var reNeg, rePos, reSx, reNm, reSz, reOr, reDe;
 
-function prepareStringFilter(filterSx, filterNm, filterSz, filterOr){
+function prepareStringFilter(filterSx, filterNm, filterSz, filterOr, filterDe){
     reSx = new RegExp(filterSx, "i");
     reNm = new RegExp(filterNm, "i");
     reSz = new RegExp(filterSz, "i");
     reOr = new RegExp(filterOr, "i");
+    reDe = new RegExp(filterDe, "i");
 }
 
 function prepareCategoryFilter(filter){
@@ -140,6 +142,7 @@ function setFilterValues(filter) {
         localStorage.setItem("filter5", filter.pr);
         localStorage.setItem("filter6", filter.dc);
         localStorage.setItem("filter7", filter.or);
+        localStorage.setItem("filter8", filter.de);
     }
 }
 
@@ -182,6 +185,8 @@ function generateUrl() {
     params = params+"&dc="+document.getElementsByTagName("input")[i+2].value;
     i++;
     params = params+"&or="+document.getElementsByTagName("input")[i+2].value;
+    i++;
+    params = params+"&de="+document.getElementsByTagName("input")[i+2].value;
     document.getElementById("genLink").href = "?"+params.substring(1);
 }
 
@@ -197,6 +202,7 @@ function getFiltersFromUrl() {
     array.push(getParameterByName("pr"));
     array.push(getParameterByName("dc"));
     array.push(getParameterByName("or"));
+    array.push(getParameterByName("de"));
     for(var i = 0; i < 8; i++){
         if(array[i] != null){
             filterFields[i+2].value = array[i];
